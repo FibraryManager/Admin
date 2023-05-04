@@ -3,7 +3,8 @@ module.exports = defineConfig({
     transpileDependencies: true,
     devServer: {
         port: 8888, //端口
-        open: true, //是否启动后浏览器自动打开
+        open: true, //是否启动后浏
+        // 览器自动打开
         https: false, //
         host: "localhost", //主机名
         proxy:{

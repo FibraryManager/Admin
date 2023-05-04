@@ -31,7 +31,7 @@ export default {
         quitOut(command) {
             console.log("被点击" + command)
             localStorage.removeItem('accessToken')
-            this.$router.push('/login')
+            this.$router.push('/')
         }
     },
     created(){

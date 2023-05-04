@@ -16,6 +16,10 @@
                 ></el-input>
             </el-form-item>
             <el-form-item>
+                <el-radio v-model="radio" label="1">图书管理员</el-radio>
+                <el-radio v-model="radio" label="2">用户管理员</el-radio>
+            </el-form-item>
+            <el-form-item>
                 <el-button type="primary" @click="onSubmitLogin">登录</el-button>
             </el-form-item>
         </el-form>
@@ -35,6 +39,7 @@ export default {
                 password:'',
                 phoneNumber: ''
             },
+            radio:'1',
             rules: {
                 username: [
                     { required: true, message: "请输入用户名", trigger: "blur" },
@@ -50,30 +55,70 @@ export default {
     },
     methods: {
         onSubmitLogin() {
-            this.$refs.form.validate(valid => {
-                if (valid) {
-                    axios
-                        .post("/api/auth/admin/signin",{
-                            nickname: this.form.username,
-                            password: this.form.password,
-                            phoneNumber: this.form.phoneNumber
-                        })
-                        .then(response => {
-                            console.log(response)
-                            localStorage.setItem('accessToken', 'Bearer ' + response.data)
-                            this.$router.push('/')
-                        })
-                        .catch(error => {
-                            console.log(error)
-                        })
-                        .finally(() => {
+            if (this.radio === '1'){
+                this.$refs.form.validate(valid => {
+                    if (valid) {
+                        axios
+                            .post("/api/auth/BAdmin/signin",{
+                                nickname: this.form.username,
+                                password: this.form.password,
+                                phoneNumber: this.form.phoneNumber
+                            })
+                            .then(response => {
+                                console.log(response)
+                                localStorage.setItem('accessToken', 'Bearer ' + response.data)
+                                this.$router.push({
+                                    path: '/main',
+                                    query: {
+                                        type: this.radio
+                                    }
+                                })
+                            })
+                            .catch(error => {
+                                console.log(error)
+                            })
+                            .finally(() => {
 
-                        })
-                } else {
-                    alert("条件不满足");
-                    return false;
-                }
-            })
+                            })
+                    } else {
+                        alert("条件不满足");
+                        return false;
+                    }
+                })
+            } else if (this.radio === '2') {
+                this.$refs.form.validate(valid => {
+                    if (valid) {
+                        axios
+                            .post("/api/auth/UAdmin/signin",{
+                                nickname: this.form.username,
+                                password: this.form.password,
+                                phoneNumber: this.form.phoneNumber
+                            })
+                            .then(response => {
+                                console.log(response)
+                                localStorage.setItem('accessToken', 'Bearer ' + response.data)
+                                this.$router.push({
+                                    path: '/main',
+                                    query: {
+                                        type: this.radio
+                                    }
+                                })
+                            })
+                            .catch(error => {
+                                console.log(error)
+                            })
+                            .finally(() => {
+
+                            })
+                    } else {
+                        alert("条件不满足");
+                        return false;
+                    }
+                })
+            } else {
+                alert("条件不满足");
+                return false;
+            }
         }
     }
 }
@@ -84,10 +129,10 @@ export default {
     width: 350px;
     background-color: #fff;
     padding: 15px;
-    height: 300px;
+    height: 380px;
     border-radius: 20px;
     position: absolute;
-    margin-top: -125px;
+    margin-top: -190px;
     margin-left: -175px;
     top:50%;
     left:50%;

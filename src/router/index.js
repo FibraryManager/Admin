@@ -31,14 +31,14 @@ const routes = [
                     path: "/book",
                     component: Book,
                     meta:{
-                        title:"类别管理"
+                        title:"图书管理"
                     }
                 },
                 {
                     path: "/borrow",
                     component: Borrow,
                     meta:{
-                        title:"信息管理"
+                        title:"借阅管理"
                     }
                 },
                 {
