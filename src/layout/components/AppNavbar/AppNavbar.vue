@@ -10,6 +10,9 @@
             <el-menu-item index="/book" v-if="BAdmin">
                 <i class="el-icon-s-platform"></i><span slot="title">图书管理</span>
             </el-menu-item>
+            <el-menu-item index="/classify" v-if="BAdmin">
+                <i class="el-icon-s-operation"></i><span slot="title">分类管理</span>
+            </el-menu-item>
             <el-menu-item index="/user" v-if="UAdmin">
                 <i class="el-icon-s-check"></i><span slot="title">用户管理</span>
             </el-menu-item>

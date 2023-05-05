@@ -1,32 +1,33 @@
 <template>
-    <div class="borrowinfo" style="width:100%;" max-height="380">
+    <div class="borrowInfo" style="width:100%;" max-height="380">
 <!--        <el-button type="primary" size="mini" @click="dialogVisible = true">添加用户</el-button>-->
 <!--        <br/>-->
         <el-input
             v-model="searchValue" size="mini" clearable
             placeholder="请输入书籍名称" style="width:300px; margin-bottom: 20px; margin-top: 20px; margin-right: 5px"></el-input>
         <el-button type="primary" size="mini" @click="doFilter">搜索</el-button>
-        <el-table :data="tableData">
-            <el-table-column fixed label="借阅号" sortable :sort-by="['id']" prop="id"></el-table-column>
-            <el-table-column label="图书编号" sortable :sort-by="['bookId']" prop="bookId"></el-table-column>
-            <el-table-column label="书籍名称" prop="bookName"></el-table-column>
+        <el-table :data="tableData" border>
+            <el-table-column fixed label="借阅号" sortable :sort-by="['id']" prop="id" width="90px"></el-table-column>
+            <el-table-column label="图书编号" sortable :sort-by="['bookId']" prop="bookId" width="110px"></el-table-column>
+            <el-table-column label="书籍名称" prop="bookName" width="180px"></el-table-column>
             <el-table-column
                 label="借出时间"
+                width="180px"
                 sortable :sort-by="['borrowTime']"
                 prop="borrowTime"
                 :formatter="formatterBorrowTime"></el-table-column>
             <el-table-column
                 label="应还时间"
+                width="180px"
                 sortable :sort-by="['returnTime']"
                 prop="returnTime"
                 :formatter="formatterReturnTime"></el-table-column>
-<!--            <el-table-column label="用户名" prop="user_name"></el-table-column>-->
-            <el-table-column label="分类id" sortable :sort-by="['classificationId']" prop="classificationId"></el-table-column>
-            <el-table-column label="操作" width="150" fixed="right">
-<!--                <template slot-scope="scope">-->
-<!--                    <el-button size="mini" type="primary" @click="handleEdit(scope.row.userId, scope.row.nickname, scope.row.type)">编辑</el-button>-->
-<!--                    <el-button size="mini" type="danger" @click="handleDelete(scope.row.userId)">删除</el-button>-->
-<!--                </template>-->
+            <el-table-column label="借阅人" prop="nickname" width="120px"></el-table-column>
+            <el-table-column label="分类id" sortable :sort-by="['classificationId']" prop="classificationId" width="90px"></el-table-column>
+            <el-table-column label="操作" fixed="right">
+                <template slot-scope="scope">
+                    <el-button size="mini" type="danger" @click="handleDelete(scope.row.bookId)">删除</el-button>
+                </template>
             </el-table-column>
         </el-table>
 
@@ -40,43 +41,6 @@
             :total="totalItems"
             style="margin-top: 10px"
         ></el-pagination>
-
-<!--        <el-dialog title="添加用户" :visible.sync="dialogVisible">-->
-<!--            <el-form :model="borrow">-->
-<!--                <el-form-item label="用户名" :label-width="formLabelWidth">-->
-<!--                    <el-input v-model="user.nickname" autocomplete="off"></el-input>-->
-<!--                </el-form-item>-->
-<!--                <el-form-item label="用户密码" :label-width="formLabelWidth">-->
-<!--                    <el-input v-model="user.password" autocomplete="off"></el-input>-->
-<!--                </el-form-item>-->
-<!--                <el-form-item label="用户手机号" :label-width="formLabelWidth">-->
-<!--                    <el-input v-model="user.phoneNumber" autocomplete="off"></el-input>-->
-<!--                </el-form-item>-->
-<!--            </el-form>-->
-<!--            <div slot="footer" class="dialog-footer">-->
-<!--                <el-button @click="dialogVisible = false">取 消</el-button>-->
-<!--                <el-button type="primary" @click="addUser(user)">确 定</el-button>-->
-<!--            </div>-->
-<!--        </el-dialog>-->
-
-<!--        <el-dialog title="更改用户信息" :visible.sync="dialogFormVisible">-->
-<!--            <el-form :model="userDTO">-->
-<!--                <el-form-item label="用户名" :label-width="formLabelWidth">-->
-<!--                    <el-input v-model="userDTO.nickname" autocomplete="off"></el-input>-->
-<!--                </el-form-item>-->
-<!--                <el-form-item label="用户类型" :label-width="formLabelWidth">-->
-<!--                    <el-select v-model="userDTO.type" placeholder="请选择用户类型">-->
-<!--                        <el-option label="借阅者" value="1"></el-option>-->
-<!--                        <el-option label="图书管理员" value="2"></el-option>-->
-<!--                    </el-select>-->
-<!--                </el-form-item>-->
-<!--            </el-form>-->
-<!--            <div slot="footer" class="dialog-footer">-->
-<!--                <el-button @click="dialogFormVisible = false">取 消</el-button>-->
-<!--                <el-button type="primary" @click="handleOK(userDTO)">确 定</el-button>-->
-<!--            </div>-->
-<!--        </el-dialog>-->
-
     </div>
 </template>
 
@@ -88,20 +52,7 @@ export default {
     data(){
         return {
             borrowInfoList:[],
-            borrow:{
-                nickname: '',
-                password: '',
-                phoneNumber: ''
-            },
-            userDTO:{
-                userId: '',
-                nickname: '',
-                type: ''
-            },
             tableData: [],
-            dialogVisible: false,
-            dialogFormVisible: false,
-            formLabelWidth: '120px',
             searchValue: "",
             currentPage: 1,
             pageSize: 10,
@@ -139,101 +90,45 @@ export default {
             const date = new Date(+new Date(zoneDate)).toISOString().replace(/T/g, ' ').replace(/\.[\d]{3}Z/, '').slice(0,10)
             return date
         },
-        // addUser(user) {
-        //     if(user.password == ''){
-        //         this.$message({
-        //             type: 'warning',
-        //             message: '用户密码不能为空'
-        //         });
-        //     }else if(user.phoneNumber.length != 11){
-        //         this.$message({
-        //             type: 'warning',
-        //             message: '请输入正确的手机号'
-        //         });
-        //     }else{
-        //         axios
-        //             .post("/api/auth/signup",{
-        //                 nickname: user.nickname,
-        //                 password: user.password,
-        //                 phoneNumber: user.phoneNumber
-        //             })
-        //             .then(respnse => {
-        //                 console.log(respnse)
-        //             })
-        //             .catch(error => {
-        //                 console.log(error)
-        //             })
-        //             .finally(() => {
-        //                 console.log("添加用户完成")
-        //                 this.dialogVisible = false
-        //                 this.getData()
-        //                 this.user.nickname = ''
-        //                 this.user.password = ''
-        //                 this.user.phoneNumber = ''
-        //             })
-        //     }
-        // },
-        // handleDelete(id)
-        // {
-        //     console.log(id)
-        //     this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
-        //         confirmButtonText: '确定',
-        //         cancelButtonText: '取消',
-        //         type: 'warning'
-        //     })
-        //         .then(() => {
-        //             axios
-        //                 .delete("/api/admin/user",{
-        //                     params:{
-        //                         id: id
-        //                     },
-        //                     Authorization: localStorage.getItem('accessToken')
-        //                 })
-        //                 .then(response => {
-        //                     console.log(response)
-        //                 })
-        //                 .catch(error => {
-        //                     console.log(error)
-        //                 })
-        //                 .finally(() => {
-        //                     this.$message({
-        //                         type: 'success',
-        //                         message: '删除成功!'
-        //                     });
-        //                 })
-        //         })
-        //         .catch(() => {
-        //             this.$message({
-        //                 type: 'info',
-        //                 message: '已取消删除'
-        //             });
-        //         });
-        // },
-        // handleEdit(id, name, role) {
-        //     this.dialogFormVisible = true
-        //     this.userDTO.userId = id
-        //     this.userDTO.nickname = name
-        //     this.userDTO.type = role
-        // },
-        // handleOK() {
-        //     axios
-        //         .put("/api/admin/user",{
-        //             userId: this.userDTO.userId,
-        //             nickname: this.userDTO.nickname,
-        //             type: this.userDTO.type
-        //         },{
-        //             Authorization: localStorage.getItem('accessToken')
-        //         })
-        //         .then(response => {
-        //             console.log(response)
-        //         })
-        //         .catch(error => {
-        //             console.log(error)
-        //         })
-        //         .finally(() => {
-        //             this.dialogFormVisible = false
-        //         })
-        // },
+        handleDelete(id)
+        {
+            console.log(id)
+            this.$confirm('此操作将永久删除该借阅记录, 是否继续?', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            })
+                .then(() => {
+                    axios
+                        .delete("/api/borrow/deleteBorrow",{
+                            params:{
+                                id: id
+                            },
+                            headers: {
+                                Authorization: localStorage.getItem('accessToken')
+                            }
+                        })
+                        .then(response => {
+                            console.log(response)
+                        })
+                        .catch(error => {
+                            console.log(error)
+                        })
+                        .finally(() => {
+                            this.$message({
+                                type: 'success',
+                                message: '删除成功!'
+                            });
+                            this.getData()
+                        })
+                })
+                .catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
+        },
         doFilter() {
             this.filterTableData = [];
             this.borrowInfoList.filter((item)=>{

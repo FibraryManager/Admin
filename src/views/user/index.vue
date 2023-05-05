@@ -1,16 +1,15 @@
 <template>
-    <div class="userinfo" style="width:100%;" max-height="380">
-        <el-button type="primary" size="mini" @click="dialogVisible = true">添加用户</el-button>
-        <br/>
+    <div class="userInfo" style="width:100%;" max-height="380">
         <el-input
             v-model="searchValue" size="mini" clearable
             placeholder="请输入姓名或手机号" style="width:300px; margin-bottom: 20px; margin-top: 20px; margin-right: 5px"></el-input>
         <el-button type="primary" size="mini" @click="doFilter">搜索</el-button>
+        <el-button type="primary" size="mini" @click="dialogVisible = true">添加用户</el-button>
         <el-table :data="tableData">
             <el-table-column fixed label="id" sortable :sort-by="['userId']" prop="userId"></el-table-column>
             <el-table-column label="用户名" prop="nickname"></el-table-column>
             <el-table-column label="手机号" prop="phoneNumber"></el-table-column>
-            <el-table-column label="用户类型" sortable :sort-by="['type']" prop="type"></el-table-column>
+            <el-table-column label="用户类型" sortable :sort-by="['type']" prop="type" :formatter="formatterType"></el-table-column>
             <el-table-column label="操作" width="150" fixed="right">
                 <template slot-scope="scope">
                     <el-button size="mini" type="primary" @click="handleEdit(scope.row.userId, scope.row.nickname, scope.row.type)">编辑</el-button>
@@ -85,8 +84,10 @@ export default {
             userDTO:{
                 userId: '',
                 nickname: '',
-                type: ''
+                type: '',
+                role: ''
             },
+            flag:false,
             tableData: [],
             dialogVisible: false,
             dialogFormVisible: false,
@@ -106,8 +107,14 @@ export default {
                 .then(response => {
                     console.log(response)
                     this.userInfoList = response.data
-                    this.tableData = this.userInfoList
                     this.totalItems = response.data.length
+                    if (this.totalItems > this.pageSize) {
+                        for (let index = 0; index < this.pageSize; index++) {
+                            this.tableData.push(this.userInfoList[index]);
+                        }
+                    } else {
+                        this.tableData = this.userInfoList;
+                    }
                 })
                 .catch(error => {
                     console.log(error)
@@ -115,6 +122,15 @@ export default {
                 .finally(() => {
                     console.log('获取用户结束')
                 })
+        },
+        formatterType (row) {
+            if(row.type === '1'){
+                return '借阅者'
+            }else if (row.type === '2'){
+                return '图书管理员'
+            }else if(row.type === '3'){
+                return '用户管理员'
+            }
         },
         addUser(user) {
             if(user.password == ''){
@@ -177,6 +193,7 @@ export default {
                                 type: 'success',
                                 message: '删除成功!'
                             });
+                            this.getData()
                         })
                 })
                 .catch(() => {
@@ -209,6 +226,7 @@ export default {
                 })
                 .finally(() => {
                     this.dialogFormVisible = false
+                    this.getData()
                 })
         },
         doFilter() {

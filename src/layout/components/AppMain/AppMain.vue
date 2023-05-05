@@ -4,6 +4,7 @@
             <span class="line"></span>
             <el-breadcrumb-item v-show="$route.path=='/borrow'">借阅管理</el-breadcrumb-item>
             <el-breadcrumb-item v-show="$route.path=='/book'">图书管理</el-breadcrumb-item>
+            <el-breadcrumb-item v-show="$route.path=='/classify'">分类管理</el-breadcrumb-item>
             <el-breadcrumb-item v-show="$route.path=='/user'">用户管理</el-breadcrumb-item>
         </el-breadcrumb>
         <router-view/>

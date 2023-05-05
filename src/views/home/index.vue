@@ -1,6 +1,8 @@
 <template>
     <div>
-
+        <el-header>
+            欢迎来到图书馆后台管理系统
+        </el-header>
     </div>
 </template>
 

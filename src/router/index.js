@@ -5,6 +5,7 @@ import Layout from "@/layout/index.vue";
 import Home from "@/views/home/index.vue";
 import Book from "@/views/book/index.vue"
 import Borrow from "@/views/borrow/index.vue";
+import Classify from "@/views/classify/index.vue";
 import User from "@/views/user/index.vue";
 
 Vue.use(VueRouter)
@@ -39,6 +40,13 @@ const routes = [
                     component: Borrow,
                     meta:{
                         title:"借阅管理"
+                    }
+                },
+                {
+                    path: "/classify",
+                    component: Classify,
+                    meta: {
+                        title: "分类管理"
                     }
                 },
                 {

@@ -1,13 +1,14 @@
 <meta name="referrer" content="no-referrer" />
 
 <template>
-    <div class="borrowinfo" style="width:100%;" max-height="380">
+    <div class="bookInfo" style="width:100%;" max-height="380">
         <!--        <el-button type="primary" size="mini" @click="dialogVisible = true">添加用户</el-button>-->
         <!--        <br/>-->
         <el-input
             v-model="searchValue" size="mini" clearable
             placeholder="请输入书籍名称" style="width:300px; margin-bottom: 20px; margin-top: 20px; margin-right: 5px"></el-input>
         <el-button type="primary" size="mini" @click="doFilter">搜索</el-button>
+        <el-button type="primary" size="mini" @click="dialogVisible = true">添加图书</el-button>
         <el-table :data="tableData" border>
             <el-table-column
                 fixed
@@ -68,23 +69,43 @@
             style="margin-top: 10px"
         ></el-pagination>
 
-        <!--        <el-dialog title="添加用户" :visible.sync="dialogVisible">-->
-        <!--            <el-form :model="borrow">-->
-        <!--                <el-form-item label="用户名" :label-width="formLabelWidth">-->
-        <!--                    <el-input v-model="user.nickname" autocomplete="off"></el-input>-->
-        <!--                </el-form-item>-->
-        <!--                <el-form-item label="用户密码" :label-width="formLabelWidth">-->
-        <!--                    <el-input v-model="user.password" autocomplete="off"></el-input>-->
-        <!--                </el-form-item>-->
-        <!--                <el-form-item label="用户手机号" :label-width="formLabelWidth">-->
-        <!--                    <el-input v-model="user.phoneNumber" autocomplete="off"></el-input>-->
-        <!--                </el-form-item>-->
-        <!--            </el-form>-->
-        <!--            <div slot="footer" class="dialog-footer">-->
-        <!--                <el-button @click="dialogVisible = false">取 消</el-button>-->
-        <!--                <el-button type="primary" @click="addUser(user)">确 定</el-button>-->
-        <!--            </div>-->
-        <!--        </el-dialog>-->
+        <el-dialog title="添加书籍" :visible.sync="dialogVisible">
+            <el-form :model="book">
+                <el-form-item label="书籍作者" :label-width="formLabelWidth">
+                    <el-input v-model="book.bookAuthor" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="书籍名称" :label-width="formLabelWidth">
+                    <el-input v-model="book.bookName" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="书籍分类" :label-width="formLabelWidth">
+                    <el-select v-model="book.classificationId" placeholder="请选择图书分类">
+                        <el-option
+                            v-for="item in this.classifyInfoList"
+                            :key="item.id"
+                            :label="item.classification"
+                            :value="item.id"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="书籍isbn编号" :label-width="formLabelWidth">
+                    <el-input v-model="book.isbn" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="书籍出版社" :label-width="formLabelWidth">
+                    <el-input v-model="book.publisher" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="书籍出版时间" :label-width="formLabelWidth">
+                    <el-date-picker
+                        v-model="book.pbTime"
+                        value-format="yyyy-MM-dd HH:mm:ss"
+                        type="datetime"
+                        placeholder="选择出版时间">
+                    </el-date-picker>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="addBook(book)">确 定</el-button>
+            </div>
+        </el-dialog>
 
         <el-dialog title="更新图书信息" :visible.sync="dialogUpdateVisible">
             <el-form :model="bookDTO">
@@ -132,6 +153,19 @@
                     </el-date-picker>
                 </el-form-item>
                 <el-form-item label="图书图片" :label-width="formLabelWidth">
+                    <el-upload
+                        class="upload-demo"
+                        ref="upload"
+                        action="http://localhost:8089/book/ChangeInfo/img"
+                        :on-success = "uploadSuccess"
+                        :on-change="handleChange"
+                        :data="{id: bookDTO.id}"
+                        :auto-upload="false"
+                        :file-list="fileList">
+                        <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
+                        <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">上传</el-button>
+                        <div slot="tip" class="el-upload__tip">只能上传jpg/png文件</div>
+                    </el-upload>
                     <el-image :src="bookDTO.imageUrl" type="p" />
                 </el-form-item>
             </el-form>
@@ -163,6 +197,7 @@
 
 <script>
 import axios from "axios";
+import moment from "moment";
 
 export default {
     // eslint-disable-next-line vue/multi-word-component-names
@@ -172,9 +207,16 @@ export default {
             bookInfoList:[],
             classifyInfoList: [],
             book:{
-                nickname: '',
-                password: '',
-                phoneNumber: ''
+                id: '',
+                bookAuthor: '',
+                bookName: '',
+                classificationId: '',
+                isbn: '',
+                imageUrl: '',
+                pbTime: '',
+                publisher: '',
+                status: '',
+                time: '',
             },
             bookDTO:{
                 id: '',
@@ -190,6 +232,8 @@ export default {
                 time: '',
                 classification: ''
             },
+            flag: false,
+            fileList: [],
             imgUrl: '',
             tableData: [],
             dialogVisible: false,
@@ -213,8 +257,14 @@ export default {
                 .then(response => {
                     console.log(response)
                     this.bookInfoList = response.data
-                    this.tableData = this.bookInfoList
                     this.totalItems = response.data.length
+                    if (this.totalItems > this.pageSize) {
+                        for (let index = 0; index < this.pageSize; index++) {
+                            this.tableData.push(this.bookInfoList[index]);
+                        }
+                    } else {
+                        this.tableData = this.bookInfoList;
+                    }
                 })
                 .catch(error => {
                     console.log(error)
@@ -277,40 +327,108 @@ export default {
                 }
             }
         },
-        // addUser(user) {
-        //     if(user.password == ''){
-        //         this.$message({
-        //             type: 'warning',
-        //             message: '用户密码不能为空'
-        //         });
-        //     }else if(user.phoneNumber.length != 11){
-        //         this.$message({
-        //             type: 'warning',
-        //             message: '请输入正确的手机号'
-        //         });
-        //     }else{
-        //         axios
-        //             .post("/api/auth/signup",{
-        //                 nickname: user.nickname,
-        //                 password: user.password,
-        //                 phoneNumber: user.phoneNumber
-        //             })
-        //             .then(respnse => {
-        //                 console.log(respnse)
-        //             })
-        //             .catch(error => {
-        //                 console.log(error)
-        //             })
-        //             .finally(() => {
-        //                 console.log("添加用户完成")
-        //                 this.dialogVisible = false
-        //                 this.getData()
-        //                 this.user.nickname = ''
-        //                 this.user.password = ''
-        //                 this.user.phoneNumber = ''
-        //             })
-        //     }
-        // },
+        uploadSuccess(response, file, fileList) {
+            console.log(response)
+            this.fileList = []
+        },
+        handleChange(file,fileList) {
+            const formData = new FormData();
+            formData.append("file", file);
+            axios
+                .post("/api//book/ChangeInfo/img", {
+                    file: file.raw,
+                    id: this.bookDTO.id
+                },{
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                })
+                .then(response => {
+                    console.log(response)
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+                .finally(() => {
+                    this.dialogUpdateVisible = true
+                    this.bookDTO.imageUrl = `/static/${file.name}`
+                    this.imgUrl = file.name
+                })
+        },
+        addBook(book) {
+            if(book.bookAuthor === ''){
+                this.$message({
+                    type: 'warning',
+                    message: '书籍作者不能为空'
+                });
+            }else if(book.bookName === ''){
+                this.$message({
+                    type: 'warning',
+                    message: '书籍名称不能为空'
+                });
+            }else if(book.classificationId === ''){
+                this.$message({
+                    type: 'warning',
+                    message: '书籍分类不能为空'
+                })
+            }else if(book.isbn === ''){
+                this.$message({
+                    type: 'warning',
+                    message: '书籍isbn编号不能为空'
+                })
+            }else if(book.pbTime === ''){
+                this.$message({
+                    type: 'warning',
+                    message: '书籍出版时间不能为空'
+                })
+            }else if(book.publisher === ''){
+                this.$message({
+                    type: 'warning',
+                    message: '书籍出版社不能为空'
+                })
+            } else{
+                book.status = 0
+                if(book.imageUrl === ''){
+                    book.imageUrl = 'loadDefault.png'
+                }
+                axios
+                    .post("/api/books/addBook",{
+                        bookAuthor: book.bookAuthor,
+                        bookName: book.bookName,
+                        classificationId: book.classificationId,
+                        isbn: book.isbn,
+                        imageUrl: book.imageUrl,
+                        pbTime: book.pbTime,
+                        publisher: book.publisher,
+                        status: book.status,
+                        time: moment().format('YYYY-MM-DD HH:mm:ss')
+                    },{
+                    headers: {
+                        Authorization: localStorage.getItem('accessToken')
+                    }})
+                    .then(respnse => {
+                        console.log(respnse)
+                    })
+                    .catch(error => {
+                        console.log(error)
+                    })
+                    .finally(() => {
+                        console.log("添加书籍完成")
+                        this.dialogVisible = false
+                        this.getData()
+                        this.book.id= ''
+                        this.book.bookAuthor= ''
+                        this.book.bookName= ''
+                        this.book.classificationId= ''
+                        this.book.isbn= ''
+                        this.book.imageUrl= ''
+                        this.book.pbTime= ''
+                        this.book.publisher= ''
+                        this.book.status= ''
+                        this.book.time= ''
+                    })
+            }
+        },
         handleDelete(id)
         {
             console.log(id)
@@ -404,6 +522,10 @@ export default {
                     this.getData()
                     this.dialogUpdateVisible = false
                 })
+        },
+        submitUpload() {
+            this.$refs.upload.submit();
+            this.dialogUpdateVisible = true
         },
         // handleOK() {
         //     axios
