@@ -156,9 +156,8 @@
                     <el-upload
                         class="upload-demo"
                         ref="upload"
-                        action="http://localhost:8089/book/ChangeInfo/img"
+                        action="http://localhost:8089/book/ChangeInfo/uploadImg"
                         :on-success = "uploadSuccess"
-                        :on-change="handleChange"
                         :data="{id: bookDTO.id}"
                         :auto-upload="false"
                         :file-list="fileList">
@@ -328,32 +327,9 @@ export default {
             }
         },
         uploadSuccess(response, file, fileList) {
-            console.log(response)
+            console.log('rv0k2mwyg.hd-bkt.clouddn.com/' + response.url)
+            this.bookDTO.imageUrl = 'http://rv0k2mwyg.hd-bkt.clouddn.com/' + response.url
             this.fileList = []
-        },
-        handleChange(file,fileList) {
-            const formData = new FormData();
-            formData.append("file", file);
-            axios
-                .post("/api//book/ChangeInfo/img", {
-                    file: file.raw,
-                    id: this.bookDTO.id
-                },{
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                })
-                .then(response => {
-                    console.log(response)
-                })
-                .catch(error => {
-                    console.log(error)
-                })
-                .finally(() => {
-                    this.dialogUpdateVisible = true
-                    this.bookDTO.imageUrl = `/static/${file.name}`
-                    this.imgUrl = file.name
-                })
         },
         addBook(book) {
             if(book.bookAuthor === ''){
@@ -502,7 +478,7 @@ export default {
                     bookName: this.bookDTO.bookName,
                     bookAuthor: this.bookDTO.bookAuthor,
                     classificationId: this.bookDTO.classificationId,
-                    imageUrl: this.imgUrl,
+                    imageUrl: this.bookDTO.imageUrl,
                     pbTime: this.bookDTO.pbTime,
                     publisher: this.bookDTO.publisher,
                     status: this.bookDTO.status,
